@@ -78,13 +78,29 @@ def forge():
     click.echo('Done.')
 
 
+### 模板上下文处理函数
+@app.context_processor
+def inject_user():  # 函数名可以随意修改
+    user = User.query.first()
+    return dict(user=user)  # 需要返回字典，等同于return {'user': user}
+    # 这个函数返回的变量（以字典键值对的形式）将会统一注入到每一个模板的上下文环境中，因此可以直接在模板中使用。
+    # 后面我们创建的任意一个模板，都可以在模板中直接使用 user 变量。
+
+### 404 错误处理函数
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
+
+
+
 ### 程序主页
 ### 在主页视图读取数据库记录
 @app.route('/')
 def index():
-    user = User.query.first()  # 读取用户记录
+    # user = User.query.first()  # 读取用户记录 # 有inject_user()了，就可以不用了
     movies = Movie.query.all()  # 读取所有电影记录
-    return render_template('index.html', user=user, movies=movies)
+    # return render_template('index.html', user=user, movies=movies)
+    return render_template('index.html', movies=movies)
 
 
 # ### 定义虚拟数据
