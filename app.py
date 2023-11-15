@@ -24,9 +24,11 @@ app.config['SECRET_KEY'] = 'dev'  # 等同于 app.secret_key = 'dev'
 # SQLAlchemy 数据库连接地址：
 app.config['SQLALCHEMY_DATABASE_URI'] = prefix + os.path.join(app.root_path, 'data.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # 关闭对模型修改的监控
+
 # 在扩展类实例化前加载配置
 db = SQLAlchemy(app)  # 初始化扩展，传入程序实例app
 login_manager = LoginManager(app)
+
 login_manager.login_view = 'login'  # 重定向操作 把 login_manager.login_view 的值设为程序的登录视图端点（函数名）
 
 
