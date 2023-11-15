@@ -26,6 +26,7 @@ class WatchlistTestCase(unittest.TestCase):
 
             self.client = app.test_client()  # 创建测试客户端
             self.runner = app.test_cli_runner()  # 创建测试命令运行器
+            self.client.get('/logout', follow_redirects=True)
 
     def tearDown(self):
         # 清除应用上下文
@@ -251,9 +252,10 @@ class WatchlistTestCase(unittest.TestCase):
 
     # 测试虚拟数据
     def test_forge_command(self):
-        result = self.runner.invoke(forge)  # 运行forge命令
-        self.assertIn('Done.', result.output)
-        self.assertNotEqual(Movie.query.count(), 0)  # 确保Movie数据库表中有数据
+        with app.app_context():
+            result = self.runner.invoke(forge)  # 运行forge命令
+            self.assertIn('Done.', result.output)
+            self.assertNotEqual(Movie.query.count(), 0)  # 确保Movie数据库表中有数据
 
     # 测试初始化数据库
     def test_initdb_command(self):
@@ -262,24 +264,26 @@ class WatchlistTestCase(unittest.TestCase):
 
     # 测试生成管理员账户
     def test_admin_command(self):
-        db.drop_all()
-        db.create_all()
-        result = self.runner.invoke(args=['admin', '--username', 'grey', '--password', '123'])
-        self.assertIn('Creating user...', result.output)
-        self.assertIn('Done.', result.output)
-        self.assertEqual(User.query.count(), 1)
-        self.assertEqual(User.query.first().username, 'grey')
-        self.assertTrue(User.query.first().validate_password('123'))
+        with app.app_context():
+            db.drop_all()
+            db.create_all()
+            result = self.runner.invoke(args=['admin', '--username', 'grey', '--password', '123'])
+            self.assertIn('Creating user...', result.output)
+            self.assertIn('Done.', result.output)
+            self.assertEqual(User.query.count(), 1)
+            self.assertEqual(User.query.first().username, 'grey')
+            self.assertTrue(User.query.first().validate_password('123'))
 
     # 测试更新管理员账户
     def test_admin_command_update(self):
-        # 使用 args 参数给出完整的命令参数列表
-        result = self.runner.invoke(args=['admin', '--username', 'peter', '--password', '456'])
-        self.assertIn('Updating user...', result.output)  # 输出中包含'Updating user...'字符串。
-        self.assertIn('Done.', result.output)
-        self.assertEqual(User.query.count(), 1)
-        self.assertEqual(User.query.first().username, 'peter')
-        self.assertTrue(User.query.first().validate_password('456'))
+        with app.app_context():
+            # 使用 args 参数给出完整的命令参数列表
+            result = self.runner.invoke(args=['admin', '--username', 'peter', '--password', '456'])
+            self.assertIn('Updating user...', result.output)  # 输出中包含'Updating user...'字符串。
+            self.assertIn('Done.', result.output)
+            self.assertEqual(User.query.count(), 1)
+            self.assertEqual(User.query.first().username, 'peter')
+            self.assertTrue(User.query.first().validate_password('456'))
 
 if __name__ == '__main__':
     unittest.main()  # 会执行所有以test_开头的测试方法，并报告测试结果
